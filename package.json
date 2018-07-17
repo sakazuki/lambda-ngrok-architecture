@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-basic-auth": "^1.1.5",
+    "ngrok": "^2.3.0"
+  }
+}
