@@ -3,18 +3,20 @@
 Use lambda with HTTPS without using AWS API Gateway.  
 This is a sample application.
 
-## Picture
+## Overview
 
-- TBD
+- ![overview](lambda-ngrok-image.png)
 
 ## Benefit
 
 - You can run a stateful application on lambda.
-- You can use Basic Authentication.
-- You can ignore the auto scale behaviour.
+- You can use the app with basic authentication.
+- You can use the app with websock.
+- You can expect the requestignore the auto scale behaviour.
 
 ## Dependency
 
+- ngrok https://ngrok.com/
 - serverless https://serverless.com/
 
 ## How to run
