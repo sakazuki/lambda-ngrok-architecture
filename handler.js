@@ -1,12 +1,11 @@
 'use strict';
 
-const app = require('express')();
-const basicAuth = require('express-basic-auth');
-const PORT = parseInt(Math.random()*16383+49152);
+const app = require('./app');
+const PORT = 3000;
 const ngrok = require('ngrok');
 const EventEmitter = require('events').EventEmitter;
 const ev = new EventEmitter();
-const pass = process.env.BASIC_PASSWORD || "secret";
+
 const slack_url = process.env.SLACK_URL;
 const https = require('https');
 const url = require('url');
@@ -16,7 +15,7 @@ const postSlack = (msg) => {
   opts.method = 'POST';
   opts.headers = {'Content-Type': 'application/json'};
   const req = https.request(opts, (res) => {
-    console.log(res.statusCode);
+    console.log("Send a slack message: " + res.statusCode);
   });
   req.on('error', (err) => {console.log(err)});
   req.write(JSON.stringify({text: msg}));
@@ -24,26 +23,12 @@ const postSlack = (msg) => {
 }
 
 module.exports.server = (event, context, callback) => {
-  app.use(basicAuth({
-    users: {'admin': pass},
-    challenge: true,
-    realm: 'lambda-ngrok'
-  }))
-  
-  app.get('/bye', (req, res) => {
+  let URL;
+  const server = app.start(PORT, context, (req, res) => {
     ngrok.kill();
-    console.log('Receive Bye request')
-    ev.emit('kill')
-  })
-
-  app.get('/', (req, res) => {
-    const now = new Date();
-    const remain = context.getRemainingTimeInMillis();
-    res.send('Hello World' + now + '<br/>Remain: ' + context.getRemainingTimeInMillis() / 1000);
-  })
-
-  const server = app.listen(PORT, () => {
-    console.log('App listening on port %d', PORT);
+    console.log('Receive Bye request');
+    postSlack('Closed ' + URL);
+    ev.emit('kill');
   })
 
   ngrok.connect(PORT, (err, url) => {
@@ -51,6 +36,7 @@ module.exports.server = (event, context, callback) => {
       callback(err, null);
       return;
     }
+    URL = url;
     ev.once('kill', () => {
       const response = {
         statusCode: 200,
@@ -60,7 +46,7 @@ module.exports.server = (event, context, callback) => {
       console.log('App closed.');
       callback(null, response);
     })
-    postSlack('Go ' + url);
-    console.log('Connect to %s', url);
+    postSlack('Go ' + URL);
+    console.log('Connect to %s', URL);
   })
 };
