@@ -12,3 +12,8 @@ functions:
     environment:
       BASIC_PASSWORD: serverless
       SLACK_URL: "TBD"
+    reservedConcurrency: 1
+    events:
+      - http:
+          path: stateful/test
+          method: get
